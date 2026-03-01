@@ -1,0 +1,38 @@
+{
+  "name": "shopvox-extractor",
+  "version": "1.0.0",
+  "description": "Extract all data from a ShopVox account via browser session auth — no paid API license required",
+  "main": "src/index.js",
+  "bin": {
+    "shopvox-extractor": "bin/cli.js"
+  },
+  "scripts": {
+    "test": "echo \"No tests yet\" && exit 0"
+  },
+  "keywords": [
+    "shopvox",
+    "extractor",
+    "data-export",
+    "puppeteer",
+    "shopvox-api",
+    "print-shop",
+    "signage"
+  ],
+  "author": "cderamos-2ct",
+  "license": "MIT",
+  "type": "commonjs",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/cderamos-2ct/shopvox-extractor.git"
+  },
+  "homepage": "https://github.com/cderamos-2ct/shopvox-extractor#readme",
+  "bugs": {
+    "url": "https://github.com/cderamos-2ct/shopvox-extractor/issues"
+  },
+  "dependencies": {
+    "puppeteer-core": "^24.0.0"
+  }
+}

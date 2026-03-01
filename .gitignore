@@ -1,0 +1,24 @@
+# User config (contains credentials — NEVER commit this)
+shopvox.config.json
+
+# Extracted data output
+shopvox-data/
+extracted/
+*.json.bak
+
+# Dependencies
+node_modules/
+
+# npm pack output
+*.tgz
+
+# macOS
+.DS_Store
+
+# Logs
+*.log
+npm-debug.log*
+
+# IDE
+.vscode/
+.idea/
