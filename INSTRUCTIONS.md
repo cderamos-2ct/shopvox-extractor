@@ -93,6 +93,53 @@ The tool reads your Chrome cookies to log into ShopVox automatically.
 
 ---
 
+## Method 2: Download PDFs
+
+In addition to exporting JSON data, you can download the actual PDF files for your quotes, invoices, sales orders, and other transaction types.
+
+**PDFs are saved to:** `shopvox-data/pdfs/<type>/` folders
+
+```
+shopvox-data/
+└── pdfs/
+    ├── quotes/
+    ├── invoices/
+    ├── sales-orders/
+    ├── payments/
+    ├── purchase-orders/
+    ├── credit-memos/
+    └── refunds/
+```
+
+> **Note:** Chrome will open visibly while PDF download runs. This is required — Chrome's PDF download behavior works differently in headless mode, so the browser must be visible.
+
+### Download all PDFs
+
+```bash
+node bin/cli.js download-pdfs
+```
+
+### Download specific types only
+
+```bash
+node bin/cli.js download-pdfs --types quotes,invoices
+```
+
+### Resumable
+
+The tool tracks downloaded IDs in a `.downloaded` file inside each type folder. If interrupted, re-running the command will skip already-downloaded records and pick up where it left off.
+
+### JSON and PDF are complementary
+
+| Method | Command | Output | Best for |
+|--------|---------|--------|----------|
+| **JSON data** | `node bin/cli.js extract` | Structured JSON files | Database import, migration, analysis |
+| **PDF files** | `node bin/cli.js download-pdfs` | PDF files per transaction | Document archival, record keeping |
+
+You can run both — they work independently and save to different folders.
+
+---
+
 ## Step 1 — Download the Tool
 
 Open **Terminal** (press `Cmd + Space`, type `Terminal`, press Enter) and run:
@@ -242,7 +289,7 @@ After you complete MFA once, future runs won't need it (the trust cookie is save
 ### See all available commands
 ```bash
 node bin/cli.js help
-node bin/cli.js types
+node bin/cli.js types   # lists all types for both extract and download-pdfs
 ```
 
 ### The Mac goes to sleep during a long extraction

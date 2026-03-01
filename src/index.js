@@ -15,6 +15,7 @@ const { loadChromeCookies } = require('./cookies');
 const { launchBrowser }     = require('./browser');
 const { extractAll }        = require('./extractor');
 const { writeCsv }          = require('./csv');
+const { downloadPdfs }      = require('./pdf');
 
 /**
  * Run a full extraction against a ShopVox account.
@@ -66,4 +67,38 @@ async function extract(config, opts = {}) {
   return results;
 }
 
-module.exports = { extract };
+/**
+ * Download PDFs for ShopVox transaction records.
+ *
+ * NOTE: Always runs Chrome in headed (visible) mode — PDF downloads require
+ * a visible browser window.
+ *
+ * @param {object} config               Validated config (from loadConfig() or plain object).
+ * @param {object} [opts]
+ * @param {string[]} [opts.types]       Specific transaction type names. Omit for all.
+ * @param {Function} [opts.log]         Custom log function. Defaults to console.log.
+ * @returns {Promise<object>} Summary map: typeName -> { total, downloaded, skipped }
+ */
+async function downloadPdfFiles(config, opts = {}) {
+  const {
+    types = null,
+    log   = console.log,
+  } = opts;
+
+  log('Loading Chrome cookies...');
+  const cookies = loadChromeCookies();
+  log(`Loaded ${cookies.length} cookies`);
+
+  log('Launching browser (headed — required for PDF downloads)...');
+  // PDF downloads always need a visible window
+  const { browser, page } = await launchBrowser(config, cookies, { headless: false, log });
+  log('Authenticated successfully');
+
+  try {
+    return await downloadPdfs(browser, page, config, { types, log });
+  } finally {
+    await browser.close();
+  }
+}
+
+module.exports = { extract, downloadPdfFiles };

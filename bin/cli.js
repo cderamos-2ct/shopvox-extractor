@@ -5,13 +5,15 @@
  * cli.js — Command-line interface for shopvox-extractor.
  *
  * Commands:
- *   shopvox-extractor init              Create a starter shopvox.config.json
- *   shopvox-extractor extract           Extract all data types
- *   shopvox-extractor extract --types   Comma-separated list of types
- *   shopvox-extractor extract --csv     Also write CSV files
- *   shopvox-extractor extract --output  Override outputDir
- *   shopvox-extractor extract --headed  Show Chrome window (useful for MFA)
- *   shopvox-extractor types             List all supported data types
+ *   shopvox-extractor init                  Create a starter shopvox.config.json
+ *   shopvox-extractor extract               Extract all data as JSON
+ *   shopvox-extractor extract --types       Comma-separated list of types
+ *   shopvox-extractor extract --csv         Also write CSV files
+ *   shopvox-extractor extract --output      Override outputDir
+ *   shopvox-extractor extract --headed      Show Chrome window (useful for MFA)
+ *   shopvox-extractor download-pdfs         Download PDFs for all transaction types
+ *   shopvox-extractor download-pdfs --types Comma-separated list of types
+ *   shopvox-extractor types                 List all supported data types
  */
 
 const path = require('path');
@@ -19,8 +21,9 @@ const fs   = require('fs');
 
 // Resolve sibling src/ regardless of how the CLI is invoked
 const { loadConfig, writeExampleConfig, CONFIG_FILENAME } = require('../src/config');
-const { extract }                                          = require('../src/index');
+const { extract, downloadPdfFiles }                        = require('../src/index');
 const { DATA_TYPES }                                       = require('../src/extractor');
+const { PDF_TYPES }                                        = require('../src/pdf');
 
 // ── Argument parsing ────────────────────────────────────────────────────────
 
@@ -58,7 +61,8 @@ USAGE
 
 COMMANDS
   init                  Create a starter shopvox.config.json in the current directory
-  extract               Extract data from ShopVox
+  extract               Extract data from ShopVox as JSON
+  download-pdfs         Download PDFs for all transactions to <outputDir>/pdfs/
   types                 List all supported data types
   help                  Show this help message
 
@@ -70,12 +74,20 @@ EXTRACT OPTIONS
   --headed              Show the Chrome window (useful if MFA is triggered)
   --config <path>       Path to config file (default: search from cwd upward)
 
+DOWNLOAD-PDFS OPTIONS
+  --types <list>        Comma-separated type names (default: all)
+                        e.g. --types quotes,invoices
+  --output <dir>        Override outputDir from config
+  --config <path>       Path to config file
+
 EXAMPLES
   shopvox-extractor init
   shopvox-extractor extract
   shopvox-extractor extract --types quotes,invoices
   shopvox-extractor extract --csv --output ./exports
   shopvox-extractor extract --headed
+  shopvox-extractor download-pdfs
+  shopvox-extractor download-pdfs --types quotes,invoices
 
 SUPPORTED TYPES
   ${DATA_TYPES.map(t => t.name).join(', ')}
@@ -93,10 +105,14 @@ CONFIGURATION
 }
 
 function cmdTypes() {
-  console.log('\nSupported data types:\n');
+  console.log('\nSupported data types (for extract command):\n');
   for (const t of DATA_TYPES) {
     const subs = t.subPaths.length > 0 ? ` (+ ${t.subPaths.join(', ')})` : '';
     console.log(`  ${t.name.padEnd(16)} ${t.listApi}${subs}`);
+  }
+  console.log('\nPDF download types (for download-pdfs command):\n');
+  for (const t of PDF_TYPES) {
+    console.log(`  ${t.name.padEnd(16)} ${t.listApi}`);
   }
   console.log('');
 }
@@ -181,6 +197,68 @@ async function cmdExtract() {
   }
 }
 
+async function cmdDownloadPdfs() {
+  // Load config
+  const configFlag = getFlag('config');
+  let config;
+  try {
+    config = loadConfig(process.cwd(), configFlag || null);
+  } catch (err) {
+    console.error(`\nConfiguration error: ${err.message}\n`);
+    process.exit(1);
+  }
+
+  // Apply CLI overrides
+  const outputOverride = getFlag('output');
+  if (outputOverride) {
+    config.outputDir = path.resolve(process.cwd(), outputOverride);
+  }
+
+  const typesFlag = getFlag('types');
+  const types = typesFlag
+    ? String(typesFlag).split(',').map(s => s.trim()).filter(Boolean)
+    : null;
+
+  log(`Config: ${config._configPath}`);
+  log(`Output: ${path.join(config.outputDir, 'pdfs')}`);
+  log(`Types:  ${types ? types.join(', ') : 'all'}`);
+  log(`Mode:   headed (Chrome always visible for PDF downloads)`);
+
+  // Validate requested types against PDF_TYPES
+  if (types) {
+    const validNames = new Set(PDF_TYPES.map(t => t.name));
+    const invalid = types.filter(t => !validNames.has(t));
+    if (invalid.length > 0) {
+      console.error(`\nUnknown PDF type(s): ${invalid.join(', ')}`);
+      console.error(`Valid PDF types: ${[...validNames].join(', ')}`);
+      process.exit(1);
+    }
+  }
+
+  try {
+    const summary = await downloadPdfFiles(config, { types, log });
+
+    // Summary table
+    console.log('\n' + '='.repeat(50));
+    console.log('PDF download complete');
+    console.log('='.repeat(50));
+    for (const [typeName, counts] of Object.entries(summary)) {
+      console.log(
+        `  ${typeName.padEnd(18)} total: ${String(counts.total).padStart(4)}  ` +
+        `downloaded: ${String(counts.downloaded).padStart(4)}  ` +
+        `skipped: ${String(counts.skipped).padStart(4)}`
+      );
+    }
+    console.log(`\nPDFs saved to: ${path.join(config.outputDir, 'pdfs')}`);
+    console.log('');
+
+  } catch (err) {
+    console.error(`\nPDF download failed: ${err.message}`);
+    if (process.env.DEBUG) console.error(err.stack);
+    process.exit(1);
+  }
+}
+
 // ── Dispatch ─────────────────────────────────────────────────────────────────
 
 switch (command) {
@@ -190,6 +268,13 @@ switch (command) {
 
   case 'extract':
     cmdExtract().catch(err => {
+      console.error(err.message);
+      process.exit(1);
+    });
+    break;
+
+  case 'download-pdfs':
+    cmdDownloadPdfs().catch(err => {
       console.error(err.message);
       process.exit(1);
     });

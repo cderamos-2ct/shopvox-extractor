@@ -6,6 +6,17 @@ ShopVox's REST API requires a paid developer license for direct HTTP access. Thi
 
 ---
 
+## Two Extraction Modes
+
+| Mode | Command | Output | Best for |
+|------|---------|--------|----------|
+| **JSON data** | `shopvox-extractor extract` | Structured JSON files | Database import, migration, analysis |
+| **PDF files** | `shopvox-extractor download-pdfs` | PDF files per transaction | Document archival, record keeping |
+
+Both modes discover **all** records via the API — not just what's visible in the ShopVox UI.
+
+---
+
 ## Prerequisites
 
 - **macOS, Windows, or Linux** (cookie decryption is supported on all three platforms)
@@ -109,6 +120,18 @@ shopvox-extractor extract --headed
 
 ```bash
 shopvox-extractor extract --config /path/to/shopvox.config.json
+```
+
+### Download PDFs for all transaction types
+
+```bash
+shopvox-extractor download-pdfs
+```
+
+### Download PDFs for specific types
+
+```bash
+shopvox-extractor download-pdfs --types quotes,invoices
 ```
 
 ### List all supported data types
