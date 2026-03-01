@@ -8,12 +8,19 @@ ShopVox's REST API requires a paid developer license for direct HTTP access. Thi
 
 ## Prerequisites
 
-- **macOS** (cookie decryption uses the macOS Keychain; Windows/Linux support is a future goal)
+- **macOS, Windows, or Linux** (cookie decryption is supported on all three platforms)
 - **Node.js 18+**
 - **Google Chrome** (must be installed and you must have logged in to ShopVox at least once)
-- **Python 3** with the `cryptography` package:
+- **Python 3** with platform-appropriate packages:
+
+  **macOS / Linux:**
   ```bash
   pip3 install cryptography
+  ```
+
+  **Windows:**
+  ```bash
+  pip install cryptography pywin32
   ```
 
 ---
@@ -170,7 +177,10 @@ Each data type also gets a CSV file: `<outputDir>/<type>.csv`
 
 ## How It Works
 
-1. **Cookie extraction**: The tool reads Chrome's SQLite cookie database (`~/Library/Application Support/Google/Chrome/Default/Cookies`), decrypts the AES-128-CBC encrypted values using a key from macOS Keychain ("Chrome Safe Storage"), and outputs them as JSON for Puppeteer.
+1. **Cookie extraction**: The tool reads Chrome's SQLite cookie database, decrypts the encrypted values, and outputs them as JSON for Puppeteer. Decryption is platform-specific:
+   - **macOS**: AES-128-CBC using a key from macOS Keychain ("Chrome Safe Storage"), PBKDF2-SHA1 with 1003 iterations.
+   - **Linux**: AES-128-CBC using the hardcoded password `peanuts`, PBKDF2-SHA1 with 1 iteration.
+   - **Windows**: AES-256-GCM using a master key stored in `Local State` and protected by Windows DPAPI.
 
 2. **Browser launch**: Puppeteer launches Chrome with your decrypted cookies pre-injected. This gives the browser a valid ShopVox session without requiring a new login (MFA is bypassed because the `ctdt` device-trust cookie is reused).
 
@@ -213,7 +223,7 @@ ShopVox's SPA can be slow to settle. The tool handles this gracefully. If it per
 
 ## Limitations
 
-- **macOS only** for cookie decryption (uses macOS Keychain via `security` CLI and Chrome's v10 AES-128-CBC format). Linux/Windows support could be added — PRs welcome.
+- **macOS, Windows, and Linux** are supported for cookie decryption. macOS uses the Keychain (AES-128-CBC), Linux uses a hardcoded password (AES-128-CBC), and Windows uses DPAPI-protected master key (AES-256-GCM).
 - **Google Chrome only** (not Chromium, Firefox, or Safari). The cookie DB path and encryption format are Chrome-specific.
 - **Session must exist**: You must have logged into ShopVox in Chrome at least once. If your session has expired and MFA is required, use `--headed`.
 - **Rate limiting**: ShopVox may throttle aggressive extraction. The default `batchSize: 30` is conservative.
