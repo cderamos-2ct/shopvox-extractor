@@ -67,28 +67,27 @@ The tool reads your Chrome cookies to log into ShopVox automatically.
 
 ### Windows Steps
 
-1. Install **Git for Windows** from https://git-scm.com
+1. Open **Command Prompt** or **PowerShell** and install the tool:
+   ```
+   npm install -g github:cderamos-2ct/shopvox-extractor
+   ```
+   No git, no account, no sign-up needed.
 
-2. Open **Command Prompt** or **PowerShell** and run:
+2. Create a working folder and config file:
    ```
-   git clone https://github.com/cderamos-2ct/shopvox-extractor.git
-   cd shopvox-extractor
-   npm install
+   mkdir %USERPROFILE%\shopvox-export
+   cd %USERPROFILE%\shopvox-export
+   shopvox-extractor init
    ```
-
-3. Create your config file:
-   ```
-   node bin/cli.js init
-   ```
-   Edit `shopvox.config.json` and set `chromePath` to:
+   Edit `shopvox.config.json` — set `chromePath` to:
    ```json
    "chromePath": "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe"
    ```
    Also fill in your ShopVox `email` and `password`.
 
-4. Log into ShopVox in Chrome, then run the extraction:
+3. Log into ShopVox in Chrome, then run:
    ```
-   node bin/cli.js extract
+   shopvox-extractor extract
    ```
 
 ---
@@ -116,13 +115,13 @@ shopvox-data/
 ### Download all PDFs
 
 ```bash
-node bin/cli.js download-pdfs
+shopvox-extractor download-pdfs
 ```
 
 ### Download specific types only
 
 ```bash
-node bin/cli.js download-pdfs --types quotes,invoices
+shopvox-extractor download-pdfs --types quotes,invoices
 ```
 
 ### Resumable
@@ -133,35 +132,32 @@ The tool tracks downloaded IDs in a `.downloaded` file inside each type folder. 
 
 | Method | Command | Output | Best for |
 |--------|---------|--------|----------|
-| **JSON data** | `node bin/cli.js extract` | Structured JSON files | Database import, migration, analysis |
-| **PDF files** | `node bin/cli.js download-pdfs` | PDF files per transaction | Document archival, record keeping |
+| **JSON data** | `shopvox-extractor extract` | Structured JSON files | Database import, migration, analysis |
+| **PDF files** | `shopvox-extractor download-pdfs` | PDF files per transaction | Document archival, record keeping |
 
 You can run both — they work independently and save to different folders.
 
 ---
 
-## Step 1 — Download the Tool
+## Step 1 — Install the Tool
 
 Open **Terminal** (press `Cmd + Space`, type `Terminal`, press Enter) and run:
 
 ```bash
-cd ~/Desktop
-git clone https://github.com/cderamos-2ct/shopvox-extractor.git
-cd shopvox-extractor
-npm install
+npm install -g github:cderamos-2ct/shopvox-extractor
 ```
 
-This downloads the tool to a folder called `shopvox-extractor` on your Desktop.
+That's it — no account needed, no sign-up, no git clone. npm installs it directly from GitHub. When it finishes, the `shopvox-extractor` command is available system-wide.
 
 ---
 
 ## Step 2 — Create Your Config File
 
-Inside the `shopvox-extractor` folder, create a file called `shopvox.config.json`.
+Create a working folder (anywhere you like), then open a Terminal there and run:
 
-The easiest way:
 ```bash
-node bin/cli.js init
+mkdir ~/shopvox-export && cd ~/shopvox-export
+shopvox-extractor init
 ```
 
 This creates the file with placeholder values. Now edit it with your credentials:
@@ -208,7 +204,7 @@ cd ~/Desktop/shopvox-extractor
 Then run:
 
 ```bash
-node bin/cli.js extract
+shopvox-extractor extract
 ```
 
 You'll see Chrome open briefly in the background. The tool will:
@@ -270,32 +266,32 @@ Each file is a standard JSON file you can:
 
 ### Extract only specific data types
 ```bash
-node bin/cli.js extract --types quotes,invoices,contacts
+shopvox-extractor extract --types quotes,invoices,contacts
 ```
 
 ### If extraction is interrupted, just re-run it
 The tool automatically skips records it already captured and picks up where it left off:
 ```bash
-node bin/cli.js extract
+shopvox-extractor extract
 ```
 
 ### If Chrome asks for MFA
 Run with `--headed` to see the browser window and complete MFA manually:
 ```bash
-node bin/cli.js extract --headed
+shopvox-extractor extract --headed
 ```
 After you complete MFA once, future runs won't need it (the trust cookie is saved).
 
 ### See all available commands
 ```bash
-node bin/cli.js help
-node bin/cli.js types   # lists all types for both extract and download-pdfs
+shopvox-extractor help
+shopvox-extractor types   # lists all types for both extract and download-pdfs
 ```
 
 ### The Mac goes to sleep during a long extraction
 Run with `caffeinate` to prevent sleep:
 ```bash
-caffeinate -dims node bin/cli.js extract
+caffeinate -dims shopvox-extractor extract
 ```
 
 ---

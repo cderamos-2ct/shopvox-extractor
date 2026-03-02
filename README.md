@@ -38,15 +38,13 @@ Both modes discover **all** records via the API — not just what's visible in t
 
 ## Installation
 
-```bash
-npm install -g shopvox-extractor
-```
-
-Or run directly without installing globally:
+Install directly from GitHub — **no npm account or registry needed**:
 
 ```bash
-npx shopvox-extractor extract
+npm install -g github:cderamos-2ct/shopvox-extractor
 ```
+
+`npm` comes bundled with Node.js, so no extra tools are required. After install, the `shopvox-extractor` command is available system-wide.
 
 ---
 
