@@ -198,7 +198,7 @@ You only need to do this once. The tool will reuse your session automatically fr
 Back in Terminal, make sure you're in the `shopvox-extractor` folder:
 
 ```bash
-cd ~/Desktop/shopvox-extractor
+cd ~/shopvox-export
 ```
 
 Then run:

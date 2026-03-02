@@ -44,6 +44,8 @@ Install directly from GitHub — **no npm account or registry needed**:
 npm install -g github:cderamos-2ct/shopvox-extractor
 ```
 
+> ⚠️ **Include `github:` in the command.** This package is not on the npm registry, so `npm install -g shopvox-extractor` (without `github:`) will give a "Not found" error.
+
 `npm` comes bundled with Node.js, so no extra tools are required. After install, the `shopvox-extractor` command is available system-wide.
 
 ---
@@ -236,6 +238,12 @@ Complete MFA manually, then the extraction will continue automatically. For futu
 
 ### Extraction is slow
 Increase `batchSize` in your config (default: 30). Be careful not to set it too high — ShopVox may rate-limit concurrent requests.
+
+### "GET https://registry.npmjs.org/shopvox-extractor - Not found"
+You're missing `github:` in the install command. Run:
+```bash
+npm install -g github:cderamos-2ct/shopvox-extractor
+```
 
 ### "networkidle2 timeout"
 ShopVox's SPA can be slow to settle. The tool handles this gracefully. If it persists, try `--headed` to see what Chrome is doing.
