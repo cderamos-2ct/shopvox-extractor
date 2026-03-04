@@ -143,13 +143,19 @@ You can run both — they work independently and save to different folders.
 
 ## Step 1 — Install the Tool
 
-Open **Terminal** (press `Cmd + Space`, type `Terminal`, press Enter) and run:
+Open **Terminal** (press `Cmd + Space`, type `Terminal`, press Enter) and paste this single command:
 
 ```bash
-npm install -g github:cderamos-2ct/shopvox-extractor
+curl -fsSL https://raw.githubusercontent.com/cderamos-2ct/shopvox-extractor/main/install.sh | bash
 ```
 
-That's it — no account needed, no sign-up, no git clone. npm installs it directly from GitHub. When it finishes, the `shopvox-extractor` command is available system-wide.
+This checks all prerequisites, installs the tool, creates your `~/shopvox-export` folder, and generates a starter config file — all in one go. Skip to **Step 2** when it finishes.
+
+> **Windows users:** Open PowerShell and use this instead:
+> ```powershell
+> irm https://raw.githubusercontent.com/cderamos-2ct/shopvox-extractor/main/install.ps1 | iex
+> ```
+> See the **Windows Instructions** section above for full Windows setup details.
 
 ---
 

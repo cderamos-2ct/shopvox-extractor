@@ -38,15 +38,31 @@ Both modes discover **all** records via the API — not just what's visible in t
 
 ## Installation
 
-Install directly from GitHub — **no npm account or registry needed**:
+### Option A — One-line installer (recommended)
+
+**macOS / Linux** — opens Terminal and paste:
+```bash
+curl -fsSL https://raw.githubusercontent.com/cderamos-2ct/shopvox-extractor/main/install.sh | bash
+```
+
+**Windows** — open PowerShell and paste:
+```powershell
+irm https://raw.githubusercontent.com/cderamos-2ct/shopvox-extractor/main/install.ps1 | iex
+```
+
+The scripts check all prerequisites (Node.js, Git, Python, Chrome), install the tool, create your working folder, and generate the config file automatically.
+
+---
+
+### Option B — Manual install
+
+Requires Node.js 18+ and Git already installed:
 
 ```bash
 npm install -g github:cderamos-2ct/shopvox-extractor
 ```
 
 > ⚠️ **Include `github:` in the command.** This package is not on the npm registry, so `npm install -g shopvox-extractor` (without `github:`) will give a "Not found" error.
-
-`npm` comes bundled with Node.js, so no extra tools are required. After install, the `shopvox-extractor` command is available system-wide.
 
 ---
 
