@@ -33,18 +33,102 @@ from pathlib import Path
 PLATFORM = sys.platform  # "darwin" | "win32" | "linux"
 
 # ---------------------------------------------------------------------------
-# Platform-specific cookie DB paths
+# Platform-specific Chrome user data directory + cookie DB discovery
 # ---------------------------------------------------------------------------
 
-def get_cookies_path():
+def get_chrome_user_data_dir():
+    """Return the Chrome 'User Data' directory for the current platform."""
     if PLATFORM == "darwin":
-        return Path.home() / "Library/Application Support/Google/Chrome/Default/Cookies"
+        return Path.home() / "Library/Application Support/Google/Chrome"
     elif PLATFORM == "win32":
         local_app_data = os.environ.get("LOCALAPPDATA", "")
-        return Path(local_app_data) / r"Google\Chrome\User Data\Default\Cookies"
+        return Path(local_app_data) / "Google" / "Chrome" / "User Data"
     else:
-        # Linux
-        return Path.home() / ".config/google-chrome/Default/Cookies"
+        return Path.home() / ".config/google-chrome"
+
+
+def find_cookies_db():
+    """
+    Search all Chrome profile directories for a Cookies DB containing
+    ShopVox cookies and return the path with the most matches.
+
+    Chrome stores profiles in subdirectories of the User Data folder:
+      Default, Profile 1, Profile 2, ..., Profile N
+
+    Newer Chrome (v96+) moved the cookies file into a Network/ subfolder:
+      {profile}/Network/Cookies   ← newer location
+      {profile}/Cookies           ← older location
+
+    Both locations are checked for each profile.
+    """
+    user_data = get_chrome_user_data_dir()
+    if not user_data.exists():
+        sys.exit(
+            f"ERROR: Chrome user data directory not found at:\n"
+            f"  {user_data}\n"
+            "Make sure Google Chrome is installed and opened at least once."
+        )
+
+    # Collect all candidate Cookies files across every profile
+    candidates = []
+    for profile_dir in user_data.iterdir():
+        if not profile_dir.is_dir():
+            continue
+        # Only look inside Chrome profile directories
+        name = profile_dir.name
+        if name != "Default" and not name.startswith("Profile"):
+            continue
+        for rel in ("Network/Cookies", "Cookies"):
+            db = profile_dir / rel
+            if db.exists():
+                candidates.append(db)
+
+    if not candidates:
+        sys.exit(
+            f"ERROR: No Chrome Cookies file found anywhere under:\n"
+            f"  {user_data}\n"
+            "Make sure Google Chrome is installed and you have logged into ShopVox at least once."
+        )
+
+    # Pick the file that has the most ShopVox cookies
+    best_path, best_count = None, -1
+    for db_path in candidates:
+        tmp = tempfile.NamedTemporaryFile(suffix=".sqlite", delete=False)
+        try:
+            shutil.copy2(db_path, tmp.name)
+            tmp.close()
+            con = sqlite3.connect(tmp.name)
+            cur = con.cursor()
+            where = " OR ".join("host_key LIKE ?" for _ in DOMAINS)
+            cur.execute(
+                f"SELECT COUNT(*) FROM cookies WHERE {where}",
+                [f"%{d}" for d in DOMAINS],
+            )
+            count = cur.fetchone()[0]
+            con.close()
+        except Exception:
+            count = 0
+        finally:
+            try:
+                os.unlink(tmp.name)
+            except Exception:
+                pass
+
+        sys.stderr.write(f"  Profile scan: {db_path} → {count} ShopVox cookie(s)\n")
+        if count > best_count:
+            best_count, best_path = count, db_path
+
+    if best_count == 0:
+        # No ShopVox cookies anywhere — use the Default profile and let the
+        # main flow handle the empty result (triggers credential login)
+        for db_path in candidates:
+            if "Default" in str(db_path):
+                sys.stderr.write("WARNING: No ShopVox cookies found — using Default profile.\n")
+                return db_path
+        return candidates[0]
+
+    sys.stderr.write(f"  Using profile: {best_path} ({best_count} ShopVox cookies)\n")
+    return best_path
 
 
 DOMAINS = ["shopvox.com"]
@@ -270,14 +354,7 @@ def extract_cookies():
     Open the Chrome SQLite Cookies DB, decrypt all shopvox.com cookies,
     and return them as a list of dicts matching Puppeteer's setCookie format.
     """
-    chrome_cookies_path = get_cookies_path()
-
-    if not chrome_cookies_path.exists():
-        sys.exit(
-            f"ERROR: Chrome Cookies file not found at:\n"
-            f"  {chrome_cookies_path}\n"
-            "Make sure Google Chrome is installed and has been opened at least once."
-        )
+    chrome_cookies_path = find_cookies_db()
 
     key = get_decryption_key()
 
