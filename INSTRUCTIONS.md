@@ -59,6 +59,7 @@ The tool reads your Chrome cookies to log into ShopVox automatically.
 ### Windows Prerequisites
 
 - **Node.js 18+** from https://nodejs.org
+- **Git for Windows** from https://git-scm.com/download/win ← required for the install command
 - **Python 3** + required packages:
   ```bash
   pip install cryptography pywin32
@@ -67,11 +68,12 @@ The tool reads your Chrome cookies to log into ShopVox automatically.
 
 ### Windows Steps
 
-1. Open **Command Prompt** or **PowerShell** and install the tool:
+1. Install **Git for Windows** from https://git-scm.com/download/win — just click through the defaults. Then **close and reopen** Command Prompt or PowerShell so it picks up git.
+
+2. Install the tool:
    ```
    npm install -g github:cderamos-2ct/shopvox-extractor
    ```
-   No git, no account, no sign-up needed.
 
 2. Create a working folder and config file:
    ```

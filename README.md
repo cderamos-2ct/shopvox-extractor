@@ -245,6 +245,10 @@ You're missing `github:` in the install command. Run:
 npm install -g github:cderamos-2ct/shopvox-extractor
 ```
 
+### "npm error syscall spawn git" / "enoent An unknown git error occurred" (Windows)
+Git is not installed. npm needs git to download from GitHub. Install it from:
+**https://git-scm.com/download/win** — click through the defaults, then close and reopen Command Prompt or PowerShell and re-run the install command.
+
 ### "networkidle2 timeout"
 ShopVox's SPA can be slow to settle. The tool handles this gracefully. If it persists, try `--headed` to see what Chrome is doing.
 
