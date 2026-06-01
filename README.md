@@ -150,6 +150,20 @@ shopvox-extractor download-pdfs
 shopvox-extractor download-pdfs --types quotes,invoices
 ```
 
+### Build the Drive-ready workbook
+
+```bash
+npm run build-workbook -- --data-dir ../shopvox-data
+```
+
+This writes `ShopVox-Extraction-Index.xlsx` with:
+
+- one tab per CSV export
+- a `Source_Index` tab for CSV and JSON file links
+- a `PDF_Index` tab with Drive search links generated from the transaction IDs
+
+Import that workbook into Google Sheets to keep the links clickable inside Drive.
+
 ### List all supported data types
 
 ```bash
@@ -211,6 +225,10 @@ Each data type also gets a CSV file: `<outputDir>/<type>.csv`
 - **Other types**: one row per record.
 - Nested objects are flattened with dot notation: `contact.name`, `address.city`.
 - Arrays of scalars are joined with ` | `.
+
+### Workbook index
+
+The `scripts/build_workbook.py` helper builds a spreadsheet-friendly workbook from the export tree. It is intended for Google Drive import and does not duplicate the PDF binaries themselves. Instead, it links to the PDFs through Drive search URLs derived from each transaction ID.
 
 ---
 

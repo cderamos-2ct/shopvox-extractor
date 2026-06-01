@@ -7,6 +7,9 @@
     "shopvox-extractor": "bin/cli.js"
   },
   "scripts": {
+    "extract": "node bin/cli.js extract",
+    "download-pdfs": "node bin/cli.js download-pdfs",
+    "build-workbook": "python3 scripts/build_workbook.py",
     "test": "echo \"No tests yet\" && exit 0"
   },
   "keywords": [
