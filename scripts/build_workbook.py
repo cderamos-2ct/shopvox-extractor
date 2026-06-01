@@ -153,16 +153,29 @@ def add_csv_sheet(wb: Workbook, csv_path: Path, data_dir: Path, used_names: set[
     rel = csv_path.relative_to(data_dir).with_suffix("")
     sheet_name = safe_sheet_name("__".join(rel.parts), used_names)
     ws = wb.create_sheet(sheet_name)
+    type_name = csv_path.stem
 
     header, rows = read_csv_rows(csv_path)
     if not header:
         ws["A1"] = "Empty CSV file"
         return sheet_name
 
-    write_header_row(ws, header)
+    headers = list(header)
+    is_transaction_type = type_name in TRANSACTION_TYPES
+    if is_transaction_type:
+        headers.append("pdf_link")
+
+    write_header_row(ws, headers)
     for row_idx, row in enumerate(rows, 2):
         for col_idx, value in enumerate(row, 1):
             ws.cell(row=row_idx, column=col_idx, value=value)
+        if is_transaction_type:
+            link_cell = ws.cell(
+                row=row_idx,
+                column=len(headers),
+                value=f'=HYPERLINK("https://drive.google.com/drive/search?q="&ENCODEURL($A{row_idx}&".pdf"),"PDF")',
+            )
+            link_cell.font = LINK_FONT
 
     ws.auto_filter.ref = ws.dimensions
     autosize_columns(ws)
