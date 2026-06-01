@@ -163,19 +163,19 @@ def add_csv_sheet(wb: Workbook, csv_path: Path, data_dir: Path, used_names: set[
     headers = list(header)
     is_transaction_type = type_name in TRANSACTION_TYPES
     if is_transaction_type:
-        headers.append("pdf_link")
+        headers.insert(0, "pdf_link")
 
     write_header_row(ws, headers)
     for row_idx, row in enumerate(rows, 2):
-        for col_idx, value in enumerate(row, 1):
-            ws.cell(row=row_idx, column=col_idx, value=value)
         if is_transaction_type:
             link_cell = ws.cell(
                 row=row_idx,
-                column=len(headers),
-                value=f'=HYPERLINK("https://drive.google.com/drive/search?q="&ENCODEURL($A{row_idx}&".pdf"),"PDF")',
+                column=1,
+                value=f'=HYPERLINK("https://drive.google.com/drive/search?q="&ENCODEURL($B{row_idx}&".pdf"),B{row_idx}&".pdf")',
             )
             link_cell.font = LINK_FONT
+        for col_idx, value in enumerate(row, 1):
+            ws.cell(row=row_idx, column=col_idx + (1 if is_transaction_type else 0), value=value)
 
     ws.auto_filter.ref = ws.dimensions
     autosize_columns(ws)
